@@ -2,8 +2,22 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import api from '../services/api';
+const [syncing, setSyncing] = useState(false);
+const [syncResult, setSyncResult] = useState(null);
 
-export default function DashboardPage() {
+export default function DashboardPage() { 
+    const handleSync = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+        const response = await api.post('/sync');
+        setSyncResult(response.data);
+    } catch (err) {
+        setSyncResult({ success: false, message: 'Erreur de synchronisation' });
+    } finally {
+        setSyncing(false);
+    }
+};
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -17,6 +31,27 @@ export default function DashboardPage() {
 
     return (
         <Layout>
+            {/* Bouton sync */}
+<div className="d-flex justify-content-between align-items-center mb-4">
+    <h4 className="fw-bold mb-0" style={{ color: '#1F4E79' }}>Tableau de bord</h4>
+    <button
+        onClick={handleSync}
+        disabled={syncing}
+        className="btn btn-sm text-white"
+        style={{ backgroundColor: '#27AE60' }}>
+        {syncing ? '⏳ Synchronisation...' : '🔄 Synchroniser KoboToolbox'}
+    </button>
+</div>
+
+{/* Résultat sync */}
+{syncResult && (
+    <div className={`alert py-2 small mb-3 ${syncResult.success ? 'alert-success' : 'alert-danger'}`}>
+        {syncResult.success
+            ? `✅ Supervisions: ${syncResult.results?.supervisions?.imported} importées, ${syncResult.results?.supervisions?.skipped} ignorées — Maintenances: ${syncResult.results?.maintenances?.imported} importées`
+            : `❌ ${syncResult.message}`
+        }
+    </div>
+)}
             <h4 className="fw-bold mb-4" style={{ color: '#1F4E79' }}>Tableau de bord</h4>
 
             {/* Cartes stats */}
