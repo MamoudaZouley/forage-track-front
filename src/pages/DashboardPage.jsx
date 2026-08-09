@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import api from '../services/api';
-const [syncing, setSyncing] = useState(false);
-const [syncResult, setSyncResult] = useState(null);
+
 
 export default function DashboardPage() { 
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [syncing, setSyncing] = useState(false);
+    const [syncResult, setSyncResult] = useState(null);
+
     const handleSync = async () => {
     setSyncing(true);
     setSyncResult(null);
@@ -18,9 +22,7 @@ export default function DashboardPage() {
         setSyncing(false);
     }
 };
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
-
+  
     useEffect(() => {
         api.get('/dashboard')
             .then(res => setData(res.data))
@@ -55,6 +57,7 @@ export default function DashboardPage() {
             <h4 className="fw-bold mb-4" style={{ color: '#1F4E79' }}>Tableau de bord</h4>
 
             {/* Cartes stats */}
+            {/* Cartes stats */}
             <div className="row g-3 mb-4">
                 <div className="col-md-3">
                     <div className="card border-0 shadow-sm h-100">
@@ -69,7 +72,8 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="col-md-3">
-                    <div className="card border-0 shadow-sm h-100">
+                    <div className="card border-0 shadow-sm h-100"
+                        style={{ borderLeft: '4px solid #E74C3C' }}>
                         <div className="card-body">
                             <div className="text-muted small mb-1">Puits en panne</div>
                             <div className="fs-2 fw-bold text-danger">
@@ -80,8 +84,9 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                <div className="col-md-3">
-                    <div className="card border-0 shadow-sm h-100">
+                <div className="col-md-2">
+                    <div className="card border-0 shadow-sm h-100"
+                        style={{ borderLeft: '4px solid #C0392B' }}>
                         <div className="card-body">
                             <div className="text-muted small mb-1">Alertes CRITICAL</div>
                             <div className="fs-2 fw-bold text-danger">
@@ -92,14 +97,42 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                <div className="col-md-3">
-                    <div className="card border-0 shadow-sm h-100">
+                <div className="col-md-2">
+                    <div className="card border-0 shadow-sm h-100"
+                        style={{ borderLeft: '4px solid #E67E22' }}>
                         <div className="card-body">
-                            <div className="text-muted small mb-1">Total alertes</div>
-                            <div className="fs-2 fw-bold" style={{ color: '#1F4E79' }}>
-                                {data.alerts.total_unresolved}
+                            <div className="text-muted small mb-1">Alertes MEDIUM</div>
+                            <div className="fs-2 fw-bold" style={{ color: '#E67E22' }}>
+                                {data.alerts.medium}
                             </div>
                             <div className="small text-muted">non résolues</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="col-md-2">
+                    <div className="card border-0 shadow-sm h-100"
+                        style={{ borderLeft: '4px solid #27AE60' }}>
+                        <div className="card-body">
+                            <div className="text-muted small mb-1">Alertes LOW</div>
+                            <div className="fs-2 fw-bold" style={{ color: '#27AE60' }}>
+                                {data.alerts.low}
+                            </div>
+                            <div className="small text-muted">non résolues</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="col-md-12 col-lg-1">
+                    <div className="card border-0 shadow-sm h-100">
+                        <div className="card-body">
+                            <div className="text-muted small mb-1">Maintenances</div>
+                            <div className="fs-2 fw-bold" style={{ color: '#1F4E79' }}>
+                                {data.maintenances?.total}
+                            </div>
+                            <div className="small text-muted">
+                                {data.maintenances?.emergency} urgences
+                            </div>
                         </div>
                     </div>
                 </div>

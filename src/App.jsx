@@ -8,6 +8,8 @@ import WellDetailPage from './pages/WellDetailPage';
 import SupervisionDetailPage from './pages/SupervisionDetailPage';
 import AlertsListPage from './pages/AlertsListPage';
 import UsersPage from './pages/UsersPage';
+import MaintenancesPage from './pages/MaintenancesPage';
+import StatisticsPage from './pages/StatisticsPage';
 
 export default function App() {
     return (
@@ -19,7 +21,9 @@ export default function App() {
             <Route path="/wells/:wellId/supervisions/:supId" element={<PrivateRoute><SupervisionDetailPage /></PrivateRoute>} />
             <Route path="/alerts" element={<PrivateRoute><AlertsListPage /></PrivateRoute>} />
             <Route path="/users" element={<AdminRoute><UsersPage /></AdminRoute>} />
+            <Route path="/maintenances" element={<PrivateRoute><MaintenancesPage /></PrivateRoute>} />
             <Route path="*" element={<Navigate to="/" />} />
+            <Route path="/statistics" element={<PrivateRoute><StatisticsPage /></PrivateRoute>} />
         </Routes>
     );
 }
