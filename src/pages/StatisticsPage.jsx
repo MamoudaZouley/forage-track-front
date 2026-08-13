@@ -173,10 +173,13 @@ export default function StatisticsPage() {
                             Statut des alertes par site ({wellsStatus?.stats?.total} sites)
                         </div>
                         <div className="card-body d-flex justify-content-center align-items-center">
-                            <PieChart width={380} height={260}>
-                                <Pie data={statusPieData} cx={190} cy={110}
-                                     outerRadius={90} dataKey="value"
-                                     label={renderPieLabel} labelLine={true}>
+                            <PieChart width={420} height={300}>
+                                <Pie data={statusPieData} cx={210} cy={130}
+                                    outerRadius={100} dataKey="value"
+                                    label={({ name, value, percent }) => 
+                                        percent > 0.03 ? `${value} (${(percent * 100).toFixed(0)}%)` : ''
+                                    }
+                                    labelLine={true}>
                                     {statusPieData.map((_, i) => (
                                         <Cell key={i} fill={['#C0392B', '#F1C40F', '#27AE60'][i]} />
                                     ))}
@@ -195,10 +198,13 @@ export default function StatisticsPage() {
                             Statut des puits ({dashboard?.wells?.total} puits)
                         </div>
                         <div className="card-body d-flex justify-content-center align-items-center">
-                            <PieChart width={380} height={260}>
-                                <Pie data={wellsPieData} cx={190} cy={110}
-                                     outerRadius={90} dataKey="value"
-                                     label={renderPieLabel} labelLine={true}>
+                            <PieChart width={420} height={300}>
+                                <Pie data={wellsPieData} cx={210} cy={130}
+                                    outerRadius={100} dataKey="value"
+                                    label={({ name, value, percent }) => 
+                                        percent > 0.03 ? `${value} (${(percent * 100).toFixed(0)}%)` : ''
+                                    }
+                                    labelLine={true}>
                                     {wellsPieData.map((_, i) => (
                                         <Cell key={i} fill={['#27AE60', '#C0392B'][i]} />
                                     ))}
