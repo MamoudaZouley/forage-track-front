@@ -60,6 +60,14 @@ export default function Layout({ children }) {
                         })}>
                        🔧 Maintenances
                     </NavLink>
+                    <NavLink to="/technicians" className={({ isActive }) =>
+                        `d-block text-decoration-none py-2 px-3 rounded mb-1 small ${isActive ? 'fw-bold' : ''}`}
+                        style={({ isActive }) => ({
+                            backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
+                            color: isActive ? '#fff' : '#9FC8E8'
+                        })}>
+                        🔧 Techniciens
+                    </NavLink>
                     <NavLink to="/statistics" className={({ isActive }) =>
                        `d-block text-decoration-none py-2 px-3 rounded mb-1 small ${isActive ? 'fw-bold' : ''}`}
                       style={({ isActive }) => ({
