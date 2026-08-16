@@ -11,6 +11,8 @@ import UsersPage from './pages/UsersPage';
 import MaintenancesPage from './pages/MaintenancesPage';
 import StatisticsPage from './pages/StatisticsPage';
 import TechnicianStatsPage from './pages/TechnicianStatsPage';
+import SupervisorStatsPage from './pages/SupervisorStatsPage';
+import KpiSupervisorsPage from './pages/KpiSupervisorsPage';
 export default function App() {
     return (
         <Routes>
@@ -25,6 +27,8 @@ export default function App() {
             <Route path="/maintenances" element={<PrivateRoute><MaintenancesPage /></PrivateRoute>} />
             <Route path="*" element={<Navigate to="/" />} />
             <Route path="/statistics" element={<PrivateRoute><StatisticsPage /></PrivateRoute>} />
+            <Route path="/supervisors" element={<PrivateRoute><SupervisorStatsPage /></PrivateRoute>} />
+            <Route path="/kpi" element={<PrivateRoute><KpiSupervisorsPage /></PrivateRoute>} />
 
         </Routes>
     );
