@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import ExportButton from '../components/ExportButton';
+import * as XLSX from 'xlsx';
 
 const gradeConfig = {
     ABSENT:    { color: '#595959', bg: '#F2F2F2' },
@@ -39,7 +40,79 @@ export default function KpiSupervisorsPage() {
         acc[s.grade] = (acc[s.grade] || 0) + 1;
         return acc;
     }, {});
+    
 
+    
+
+   const handleExportKpi = () => {
+    if (!data) return;
+
+    const gradeColors = {
+        ABSENT: '#F2F2F2', CRITICAL: '#FCE4D6', LOW: '#FDE9D9',
+        PARTIAL: '#FFF2CC', GOOD: '#DEEAF1', EXCELLENT: '#E2EFDA',
+    };
+    const gradeTextColors = {
+        ABSENT: '#595959', CRITICAL: '#C00000', LOW: '#E26B0A',
+        PARTIAL: '#BF8F00', GOOD: '#2E75B6', EXCELLENT: '#375623',
+    };
+
+    let html = `
+    <html><head><meta charset="UTF-8"></head><body>
+    <table border="1" style="border-collapse:collapse;font-family:Arial;font-size:11px;">
+        <tr><td colspan="15" style="background:#1F3864;color:white;font-weight:bold;font-size:13px;text-align:center;padding:8px;">
+            SUQYA — Rapport KPI Superviseurs | ${month} | Région Maradi
+        </td></tr>
+        <tr><td colspan="15" style="background:#EBF3FB;color:#1F4E79;font-style:italic;font-size:9px;padding:4px;">
+            Règles : (1) 1 visite/puits/semaine | (2) Min 4 jours entre visites | (3) Puits assignés uniquement | Cible : 4 semaines × nb puits
+        </td></tr>
+        <tr>
+            ${['#','Superviseur','Zone','Puits assignés','Cible','Soumis','Doublons','Gap <4j','Visites valides','S1 (01-07)','S2 (08-14)','S3 (15-21)','S4 (22-fin)','KPI %','Grade']
+                .map(h => `<th style="background:#1F3864;color:white;padding:6px;text-align:center;">${h}</th>`).join('')}
+        </tr>
+        ${data.stats.map((sup, i) => `
+        <tr style="background:${i % 2 === 0 ? '#F9F9F9' : '#FFFFFF'};">
+            <td style="text-align:center;padding:4px;">${i + 1}</td>
+            <td style="padding:4px;">${sup.name}</td>
+            <td style="padding:4px;color:#666;">${sup.zone}</td>
+            <td style="text-align:center;padding:4px;">${sup.assigned_wells}</td>
+            <td style="text-align:center;padding:4px;">${sup.target}</td>
+            <td style="text-align:center;padding:4px;">${sup.raw_submitted}</td>
+            <td style="text-align:center;padding:4px;${sup.duplicates > 0 ? 'background:#FFF2CC;color:#C00000;' : ''}">${sup.duplicates}</td>
+            <td style="text-align:center;padding:4px;${sup.gap_violations > 0 ? 'background:#FFF2CC;color:#C00000;' : ''}">${sup.gap_violations}</td>
+            <td style="text-align:center;padding:4px;font-weight:bold;color:#375623;">${sup.valid_visits}</td>
+            <td style="text-align:center;padding:4px;">${sup.w1}</td>
+            <td style="text-align:center;padding:4px;">${sup.w2}</td>
+            <td style="text-align:center;padding:4px;">${sup.w3}</td>
+            <td style="text-align:center;padding:4px;">${sup.w4}</td>
+            <td style="text-align:center;padding:4px;font-weight:bold;color:${gradeTextColors[sup.grade] || '#333'};">${sup.kpi_percent}%</td>
+            <td style="text-align:center;padding:4px;font-weight:bold;background:${gradeColors[sup.grade] || '#fff'};color:${gradeTextColors[sup.grade] || '#333'};">${sup.grade}</td>
+        </tr>`).join('')}
+        <tr style="background:#1F3864;color:white;font-weight:bold;">
+            <td colspan="3" style="padding:6px;">TOTAL</td>
+            <td style="text-align:center;padding:4px;">${data.totals.assigned_wells}</td>
+            <td style="text-align:center;padding:4px;">${data.totals.target}</td>
+            <td style="text-align:center;padding:4px;">${data.totals.raw_submitted}</td>
+            <td style="text-align:center;padding:4px;">${data.totals.duplicates}</td>
+            <td style="text-align:center;padding:4px;">${data.totals.gap_violations}</td>
+            <td style="text-align:center;padding:4px;">${data.totals.valid_visits}</td>
+            <td style="text-align:center;padding:4px;">${data.totals.w1}</td>
+            <td style="text-align:center;padding:4px;">${data.totals.w2}</td>
+            <td style="text-align:center;padding:4px;">${data.totals.w3}</td>
+            <td style="text-align:center;padding:4px;">${data.totals.w4}</td>
+            <td style="text-align:center;padding:4px;">${data.totals.kpi_percent}%</td>
+            <td style="text-align:center;padding:4px;"></td>
+        </tr>
+    </table></body></html>`;
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `KPI_Superviseurs_${month}.xls`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    };
     return (
         <Layout>
             {/* Filtre mois */}
@@ -47,8 +120,14 @@ export default function KpiSupervisorsPage() {
                 <h4 className="fw-bold mb-0" style={{ color: '#1F4E79' }}>
                     KPI Mensuel Superviseurs
                 </h4>
-                <input type="month" className="form-control" style={{ width: '180px' }}
-                       value={month} onChange={handleMonthChange} />
+                <div className="d-flex gap-2">
+                    <input type="month" className="form-control" style={{ width: '180px' }}
+                        value={month} onChange={handleMonthChange} />
+                    <button onClick={handleExportKpi} className="btn text-white"
+                            style={{ backgroundColor: '#27AE60' }}>
+                        ⬇ Exporter Excel
+                    </button>
+                </div>
             </div>
 
             {/* Résumé grades */}
