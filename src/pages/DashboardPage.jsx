@@ -12,16 +12,39 @@ export default function DashboardPage() {
 
     const handleSync = async () => {
     setSyncing(true);
-    setSyncResult(null);
+    setSyncError(null);
+    
     try {
-        const response = await api.post('/sync');
-        setSyncResult(response.data);
+        // Lance la sync sans attendre la réponse
+        fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/sync`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json',
+            },
+        }).catch(() => {}); // Ignore le timeout
+
+        // Poll le statut toutes les 5 secondes
+        let attempts = 0;
+        const poll = setInterval(async () => {
+            attempts++;
+            try {
+                const status = await api.get('/sync/status');
+                // Rafraîchit le dashboard
+                await fetchDashboard();
+            } catch {}
+            
+            if (attempts >= 24) { // 2 minutes max
+                clearInterval(poll);
+                setSyncing(false);
+            }
+        }, 5000);
+
     } catch (err) {
-        setSyncResult({ success: false, message: 'Erreur de synchronisation' });
-    } finally {
+        setSyncError('Erreur de synchronisation');
         setSyncing(false);
     }
-};
+    };
   
     useEffect(() => {
         api.get('/dashboard')
