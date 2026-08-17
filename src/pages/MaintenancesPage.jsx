@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import api from '../services/api';
+import * as XLSX from 'xlsx';
 
 function ResultBadge({ result }) {
     const config = {
@@ -67,18 +68,135 @@ export default function MaintenancesPage() {
         setPage(1);
         fetchMaintenances(1, reset);
     };
+    
 
+    
+
+    const handleExport = async () => {
+        try {
+            const response = await api.get('/maintenances/export-data', {
+                params: {
+                    region: filters.region,
+                    maintenance_type: filters.maintenance_type,
+                    final_result: filters.final_result,
+                    search: filters.search,
+                }
+            });
+
+            const typeLabels = {
+                emergency: 'Urgence', repair: 'Réparation',
+                replacement: 'Remplacement', scheduled: 'Planifié',
+                inspection: 'Inspection',
+            };
+            const resultLabels = {
+                fully_working: 'Fonctionnel', partially_working: 'Partiel',
+                not_working: 'En panne', needs_parts: 'Pièces requises',
+                needs_specialist: 'Spécialiste requis', not_repairable: 'Non réparable',
+            };
+            const technicianNames = {
+                mauntaka: 'Maman Mountaka Abdou',
+                gambouplumbe: 'Gambo Harou',
+                maint_water_well_01: 'Ibrahim Noura',
+                pro_m: 'Mahamadou Adamou',
+            };
+            const workLabels = {
+                pump_replacement: 'Remplacement pompe',
+                controller_replacement: 'Remplacement contrôleur',
+                solar_repair: 'Réparation panneau solaire',
+                pipe_repair: 'Réparation tuyaux',
+                tank_repair: 'Réparation cuve',
+                tap_repair: 'Réparation robinets',
+                electrical_repair: 'Réparation électrique',
+                robinet: 'Remplacement robinets',
+                other: 'Autre',
+            };
+
+            const translateWork = (work) => {
+                if (!work) return '—';
+                return work.split(' ').map(p => workLabels[p] || p).join(', ');
+            };
+
+            const rows = response.data.map((m, i) => ({
+                '#': i + 1,
+                'Date': m.visit_date,
+                'Village': m.village || '—',
+                'Région': m.region || '—',
+                'Code puits': m.well_code || '—',
+                'Technicien': technicianNames[m.technician_username] || m.technician_username || '—',
+                'Chef équipe': m.team_leader_name || '—',
+                'Type': typeLabels[m.maintenance_type] || m.maintenance_type || '—',
+                'Travaux effectués': translateWork(m.work_performed),
+                'Description': (m.work_description || '—').replace(/\t/g, ' '),
+                'Durée (h)': m.work_duration || '—',
+                'Pompe avant': m.pump_condition_before || '—',
+                'Pompe après': m.pump_condition_after || '—',
+                'Débit avant': m.water_flow_before || '—',
+                'Débit après': m.water_flow_after || '—',
+                'Résultat': resultLabels[m.final_result] || m.final_result || '—',
+                'Suivi requis': m.needs_followup ? 'Oui' : 'Non',
+                'Observations': (m.observations || '—').replace(/\t/g, ' '),
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(rows);
+
+            // Style entêtes
+            const headerStyle = {
+                font: { bold: true, color: { rgb: 'FFFFFF' } },
+                fill: { fgColor: { rgb: '1F4E79' } },
+                alignment: { horizontal: 'center', wrapText: true },
+            };
+
+            // Largeur colonnes
+            ws['!cols'] = [
+                { wch: 4 },  // #
+                { wch: 12 }, // Date
+                { wch: 20 }, // Village
+                { wch: 10 }, // Région
+                { wch: 8 },  // Code puits
+                { wch: 25 }, // Technicien
+                { wch: 25 }, // Chef équipe
+                { wch: 12 }, // Type
+                { wch: 25 }, // Travaux
+                { wch: 50 }, // Description
+                { wch: 8 },  // Durée
+                { wch: 12 }, // Pompe avant
+                { wch: 12 }, // Pompe après
+                { wch: 12 }, // Débit avant
+                { wch: 12 }, // Débit après
+                { wch: 15 }, // Résultat
+                { wch: 10 }, // Suivi
+                { wch: 50 }, // Observations
+            ];
+
+            // Hauteur ligne entête
+            ws['!rows'] = [{ hpt: 30 }];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Maintenances');
+            XLSX.writeFile(wb, `Maintenances_${new Date().toISOString().slice(0, 10)}.xlsx`);
+
+        } catch (error) {
+            console.error('Erreur export:', error);
+        }
+    };
+    
     return (
         <Layout>
-            <h4 className="fw-bold mb-4" style={{ color: '#1F4E79' }}>
-                Maintenances
-                {meta && (
-                    <span className="badge ms-2 rounded-pill"
-                          style={{ backgroundColor: '#EAF3FB', color: '#1F4E79', fontSize: '13px' }}>
-                        {meta.total} interventions
-                    </span>
-                )}
-            </h4>
+           <div className="d-flex justify-content-between align-items-center mb-4">
+                <h4 className="fw-bold mb-0" style={{ color: '#1F4E79' }}>
+                    Maintenances
+                    {meta && (
+                        <span className="badge ms-2 rounded-pill"
+                            style={{ backgroundColor: '#EAF3FB', color: '#1F4E79', fontSize: '13px' }}>
+                            {meta.total} interventions
+                        </span>
+                    )}
+                </h4>
+                <button onClick={handleExport} className="btn text-white"
+                        style={{ backgroundColor: '#27AE60' }}>
+                    ⬇ Exporter Excel
+                </button>
+            </div>
 
             {/* Filtres */}
             <div className="card border-0 shadow-sm mb-4">
@@ -93,7 +211,9 @@ export default function MaintenancesPage() {
                                 <option value="MARADI">Maradi</option>
                                 <option value="ZINDER">Zinder</option>
                             </select>
+                            
                         </div>
+                        
                         <div className="col-md-2">
                             <label className="form-label small mb-1">Type</label>
                             <select className="form-select form-select-sm"
