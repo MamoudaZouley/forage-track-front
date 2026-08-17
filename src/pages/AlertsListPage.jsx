@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import ExportButton from '../components/ExportButton';
+
 function StatusBadge({ status }) {
     const config = {
         unresolved: { label: '🔴 Non résolu', bg: '#FDECEC', color: '#C0392B' },
@@ -64,16 +65,36 @@ export default function AlertsListPage() {
         fetchData(reset);
     };
 
+    const getDaysColor = (days) => {
+        if (days >= 30) return '#C00000';
+        if (days >= 14) return '#E67E22';
+        if (days >= 7)  return '#F1C40F';
+        return '#27AE60';
+    };
+
+    const getDaysLabel = (days) => {
+        if (days === 0) return "Aujourd'hui";
+        if (days === 1) return '1 jour';
+        return `${days} jours`;
+    };
+
+    const getMaxDaysOpen = (alerts) => {
+        const unresolvedDays = alerts
+            ?.filter(a => !a.resolved)
+            .map(a => a.days_open || 0);
+        if (!unresolvedDays || unresolvedDays.length === 0) return 0;
+        return Math.max(...unresolvedDays);
+    };
+
     return (
         <Layout>
-            {/* Header + stats */}
-                <div className="d-flex justify-content-between align-items-center mb-3">
-              
-                      <h4 className="fw-bold mb-0" style={{ color: '#1F4E79' }}>
-                         Suivi des alertes par site
-                      </h4>
-                         <ExportButton data={data} filename="forage_alertes" />
-                </div>
+            {/* Header */}
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <h4 className="fw-bold mb-0" style={{ color: '#1F4E79' }}>
+                    Suivi des alertes par site
+                </h4>
+                <ExportButton data={data} filename="forage_alertes" />
+            </div>
 
             {/* Cartes stats */}
             {stats && (
@@ -175,6 +196,7 @@ export default function AlertsListPage() {
                                             <th className="text-white fw-medium">Site / Village</th>
                                             <th className="text-white fw-medium">Dernière visite</th>
                                             <th className="text-white fw-medium">Alertes</th>
+                                            <th className="text-white fw-medium">Ancienneté</th>
                                             <th className="text-white fw-medium">Dernière maint.</th>
                                             <th className="text-white fw-medium">Détail</th>
                                         </tr>
@@ -210,6 +232,18 @@ export default function AlertsListPage() {
                                                         </span>
                                                     ) : (
                                                         <span className="text-muted small">—</span>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {item.alerts?.filter(a => !a.resolved).length > 0 && (
+                                                        <span className="badge rounded-pill"
+                                                              style={{
+                                                                  backgroundColor: getDaysColor(getMaxDaysOpen(item.alerts)),
+                                                                  color: getDaysColor(getMaxDaysOpen(item.alerts)) === '#F1C40F' ? '#333' : '#fff',
+                                                                  fontSize: '11px'
+                                                              }}>
+                                                            ⏱ {getDaysLabel(getMaxDaysOpen(item.alerts))}
+                                                        </span>
                                                     )}
                                                 </td>
                                                 <td>
@@ -290,8 +324,18 @@ export default function AlertsListPage() {
                                                     <span className="fw-medium">{alert.issue}</span>
                                                     <SeverityBadge severity={alert.severity} />
                                                 </div>
-                                                <div className="text-muted mt-1" style={{ fontSize: '11px' }}>
-                                                    {alert.component} · sous {alert.priority_hours}h
+                                                <div className="d-flex justify-content-between mt-1" style={{ fontSize: '11px' }}>
+                                                    <span className="text-muted">{alert.component}</span>
+                                                    {!alert.resolved && alert.days_open !== undefined && (
+                                                        <span className="badge rounded-pill"
+                                                              style={{
+                                                                  backgroundColor: getDaysColor(alert.days_open),
+                                                                  color: getDaysColor(alert.days_open) === '#F1C40F' ? '#333' : '#fff',
+                                                                  fontSize: '10px'
+                                                              }}>
+                                                            ⏱ {getDaysLabel(alert.days_open)}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
@@ -327,13 +371,6 @@ export default function AlertsListPage() {
                                               className="btn btn-sm text-white"
                                               style={{ backgroundColor: '#1F4E79', fontSize: '11px' }}>
                                             Fiche du puits →
-                                        </Link>
-                                    )}
-                                    {selected.supervision_id && (
-                                        <Link to={`/wells/${selected.well_id}/supervisions/${selected.supervision_id}`}
-                                              className="btn btn-sm btn-outline-secondary"
-                                              style={{ fontSize: '11px' }}>
-                                            Voir supervision →
                                         </Link>
                                     )}
                                 </div>
