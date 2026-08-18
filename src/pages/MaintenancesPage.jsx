@@ -265,7 +265,7 @@ export default function MaintenancesPage() {
                                 <div className="text-center p-4">Chargement...</div>
                             ) : (
                                 <table className="table table-hover mb-0 small">
-                                    <thead style={{ backgroundColor: '#1F4E79' }}>
+                                    <thead className="table-dark-header">
                                         <tr>
                                             <th className="text-white fw-medium py-3 px-3">Date</th>
                                             <th className="text-white fw-medium">Puits</th>

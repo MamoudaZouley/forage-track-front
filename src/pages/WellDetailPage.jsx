@@ -114,7 +114,7 @@ export default function WellDetailPage() {
                 </div>
                 <div className="card-body p-0">
                     <table className="table table-hover mb-0 small">
-                        <thead style={{ backgroundColor: '#F0F5FA' }}>
+                        <thead className="table-dark-header">
                             <tr>
                                 <th className="px-3 py-2" style={{ color: '#1F4E79' }}>Date</th>
                                 <th style={{ color: '#1F4E79' }}>Superviseur</th>

@@ -13,6 +13,7 @@ import StatisticsPage from './pages/StatisticsPage';
 import TechnicianStatsPage from './pages/TechnicianStatsPage';
 import SupervisorStatsPage from './pages/SupervisorStatsPage';
 import KpiSupervisorsPage from './pages/KpiSupervisorsPage';
+import WaterConsumptionPage from './pages/WaterConsumptionPage';
 export default function App() {
     return (
         <Routes>
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="/statistics" element={<PrivateRoute><StatisticsPage /></PrivateRoute>} />
             <Route path="/supervisors" element={<PrivateRoute><SupervisorStatsPage /></PrivateRoute>} />
             <Route path="/kpi" element={<PrivateRoute><KpiSupervisorsPage /></PrivateRoute>} />
+            <Route path="/water" element={<PrivateRoute><WaterConsumptionPage /></PrivateRoute>} />
 
         </Routes>
     );

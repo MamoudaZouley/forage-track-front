@@ -84,6 +84,14 @@ export default function Layout({ children }) {
                         })}>
                         📊 KPI Mensuel
                     </NavLink>
+                    <NavLink to="/water" className={({ isActive }) =>
+                        `d-block text-decoration-none py-2 px-3 rounded mb-1 small ${isActive ? 'fw-bold' : ''}`}
+                        style={({ isActive }) => ({
+                            backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
+                            color: isActive ? '#fff' : '#9FC8E8'
+                        })}>
+                        💧 Consommation eau
+                    </NavLink>
                     <NavLink to="/statistics" className={({ isActive }) =>
                        `d-block text-decoration-none py-2 px-3 rounded mb-1 small ${isActive ? 'fw-bold' : ''}`}
                       style={({ isActive }) => ({
@@ -92,6 +100,7 @@ export default function Layout({ children }) {
                        })}>
                        📈 Statistiques
                     </NavLink>
+
 
                     {user?.role === 'admin' && (
                         <NavLink to="/users" className={({ isActive }) =>

@@ -142,7 +142,7 @@ export default function SupervisorStatsPage() {
                 </div>
                 <div className="card-body p-0">
                     <table className="table table-hover mb-0 small">
-                        <thead style={{ backgroundColor: '#1F4E79' }}>
+                        <thead className="table-dark-header">
                             <tr>
                                 <th className="text-white fw-medium py-3 px-3">Superviseur</th>
                                 <th className="text-white fw-medium">Zone</th>
