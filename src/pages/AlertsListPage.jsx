@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import api from '../services/api';
+import SupervisorZoneFilter from '../components/SupervisorZoneFilter';
 import ExportButton from '../components/ExportButton';
+
 
 function StatusBadge({ status }) {
     const config = {
@@ -39,7 +41,7 @@ export default function AlertsListPage() {
     const [data, setData] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState({ region: '', status: '', search: '' });
+    const [filters, setFilters] = useState({  region: '', status: '', search: '', supervisor: '', zone: ''  });
     const [selected, setSelected] = useState(null);
 
     const fetchData = (f = filters) => {
@@ -148,6 +150,7 @@ export default function AlertsListPage() {
                                 <option value="ZINDER">Zinder</option>
                             </select>
                         </div>
+                        <SupervisorZoneFilter filters={filters} setFilters={setFilters} />
                         <div className="col-md-3">
                             <label className="form-label small mb-1">Statut</label>
                             <select className="form-select form-select-sm"
@@ -178,6 +181,7 @@ export default function AlertsListPage() {
                     </form>
                 </div>
             </div>
+            
 
             {/* Tableau + détail */}
             <div className="row g-3">

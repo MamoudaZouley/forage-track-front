@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import api from '../services/api';
+import SupervisorZoneFilter from '../components/SupervisorZoneFilter';
 
 function StatusBadge({ status }) {
     const config = {
@@ -23,6 +24,7 @@ export default function WellsListPage() {
     const [meta, setMeta] = useState(null);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({ region: '', status: '', search: '' });
+    
     const [page, setPage] = useState(1);
 
     const fetchWells = (p = 1, f = filters) => {
@@ -45,12 +47,12 @@ export default function WellsListPage() {
     };
 
     const handleReset = () => {
-        const reset = { region: '', status: '', search: '' };
+        const reset = { region: '', status: '', search: '', supervisor: '', zone: '' };
         setFilters(reset);
         setPage(1);
         fetchWells(1, reset);
     };
-
+   
     return (
         <Layout>
             <h4 className="fw-bold mb-4" style={{ color: '#1F4E79' }}>Liste des puits</h4>
@@ -64,11 +66,13 @@ export default function WellsListPage() {
                             <select className="form-select form-select-sm"
                                     value={filters.region}
                                     onChange={e => setFilters({ ...filters, region: e.target.value })}>
+                                   
                                 <option value="">Toutes les régions</option>
                                 <option value="Maradi">Maradi</option>
                                 <option value="Zinder">Zinder</option>
                             </select>
                         </div>
+                        <SupervisorZoneFilter filters={filters} setFilters={setFilters} />
                         <div className="col-md-3">
                             <label className="form-label small mb-1">Statut</label>
                             <select className="form-select form-select-sm"

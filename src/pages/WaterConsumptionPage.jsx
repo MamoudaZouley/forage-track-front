@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../services/api';
+import SupervisorZoneFilter from '../components/SupervisorZoneFilter';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
     LineChart, Line, ResponsiveContainer, Cell

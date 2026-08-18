@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import * as XLSX from 'xlsx';
-
+import SupervisorZoneFilter from '../components/SupervisorZoneFilter';
 function ResultBadge({ result }) {
     const config = {
         fully_working: { label: 'Fonctionnel', color: '#E8F8EF', text: '#27AE60' },
