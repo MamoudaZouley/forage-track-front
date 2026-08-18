@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
 import api from '../services/api';
-import SupervisorZoneFilter from '../components/SupervisorZoneFilter';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-    LineChart, Line, ResponsiveContainer, Cell, Legend, RadarChart,
-    Radar, PolarGrid, PolarAngleAxis
+    LineChart, Line, ResponsiveContainer, Cell, Legend
 } from 'recharts';
 
 const COLORS = ['#1F4E79', '#27AE60', '#C0392B', '#E67E22', '#F1C40F', '#8E44AD', '#16A085', '#2C3E50', '#E91E63', '#00BCD4'];
@@ -32,6 +30,7 @@ export default function SupervisorStatsPage() {
     const [selected, setSelected] = useState(null);
     const [loading, setLoading] = useState(true);
     const [sortBy, setSortBy] = useState('total_visits');
+    const detailRef = useRef(null);
 
     useEffect(() => {
         api.get('/supervisions/supervisor-stats')
@@ -42,11 +41,16 @@ export default function SupervisorStatsPage() {
             .finally(() => setLoading(false));
     }, []);
 
+    useEffect(() => {
+        if (selected && detailRef.current) {
+            detailRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, [selected]);
+
     if (loading) return <Layout><div className="text-center mt-5">Chargement...</div></Layout>;
 
     const sorted = [...stats].sort((a, b) => b[sortBy] - a[sortBy]);
 
-    // Données comparatives top 10
     const compData = sorted.slice(0, 10).map(s => ({
         name: s.username,
         visites: s.total_visits,
@@ -57,13 +61,6 @@ export default function SupervisorStatsPage() {
     const selectedByMonth = selected ? Object.entries(selected.by_month)
         .map(([month, count]) => ({
             month: new Date(month + '-01').toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }),
-            count
-        })) : [];
-
-    const selectedByStatus = selected ? Object.entries(selected.by_status)
-        .map(([status, count]) => ({
-            status: status === 'operational' ? 'Opérationnel' :
-                    status === 'not_working' ? 'En panne' : 'Suspendu',
             count
         })) : [];
 
@@ -147,8 +144,8 @@ export default function SupervisorStatsPage() {
                             <tr>
                                 <th className="text-white fw-medium py-3 px-3">Superviseur</th>
                                 <th className="text-white fw-medium">Zone</th>
-                                <th className="text-white fw-medium text-center">Visites</th>
-                                <th className="text-white fw-medium text-center">Sites</th>
+                                <th className="text-white fw-medium text-center">Visites semaine</th>
+                                <th className="text-white fw-medium text-center">Sites assignés</th>
                                 <th className="text-white fw-medium text-center">Alertes</th>
                                 <th className="text-white fw-medium text-center">Taux détection</th>
                                 <th className="text-white fw-medium text-center">Détail</th>
@@ -164,7 +161,7 @@ export default function SupervisorStatsPage() {
                                     }}
                                     onClick={() => setSelected(sup)}>
                                     <td className="px-3 fw-medium" style={{ color: '#1F4E79' }}>
-                                        {sup.username}
+                                        {sup.supervisor || sup.username}
                                         <div className="text-muted" style={{ fontSize: '11px' }}>
                                             {sup.region}
                                         </div>
@@ -185,9 +182,10 @@ export default function SupervisorStatsPage() {
                                         </span>
                                     </td>
                                     <td className="text-center">
-                                        <button onClick={() => setSelected(sup)}
-                                                className="btn btn-sm text-white"
-                                                style={{ backgroundColor: '#1F4E79', fontSize: '11px' }}>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setSelected(sup); }}
+                                            className="btn btn-sm text-white"
+                                            style={{ backgroundColor: '#1F4E79', fontSize: '11px' }}>
                                             Voir →
                                         </button>
                                     </td>
@@ -200,9 +198,9 @@ export default function SupervisorStatsPage() {
 
             {/* Détail superviseur sélectionné */}
             {selected && (
-                <>
+                <div ref={detailRef}>
                     <h5 className="fw-bold mb-3" style={{ color: '#1F4E79' }}>
-                        Détail — {selected.username}
+                        Détail — {selected.supervisor || selected.username}
                         <span className="badge ms-2 rounded-pill"
                               style={{ backgroundColor: '#EAF3FB', color: '#1F4E79', fontSize: '13px' }}>
                             Zone : {selected.zone}
@@ -212,9 +210,9 @@ export default function SupervisorStatsPage() {
                     {/* KPI cards */}
                     <div className="row g-3 mb-4">
                         {[
-                            { label: 'Total visites', value: selected.total_visits, color: '#1F4E79' },
-                            { label: 'Sites visités', value: selected.wells_visited, color: '#27AE60' },
-                            { label: 'Alertes détectées', value: selected.total_alerts, color: '#C0392B' },
+                            { label: 'Visites couvertes cette semaine', value: selected.total_visits, color: '#1F4E79' },
+                            { label: 'Sites assignés', value: selected.wells_visited, color: '#27AE60' },
+                            { label: 'Total alertes pour tous les sites', value: selected.total_alerts, color: '#C0392B' },
                             { label: 'Taux de détection', value: `${selected.detection_rate}%`, color: selected.detection_rate >= 80 ? '#27AE60' : '#E67E22' },
                         ].map(({ label, value, color }) => (
                             <div key={label} className="col-md-3">
@@ -283,7 +281,7 @@ export default function SupervisorStatsPage() {
                             </div>
                         </div>
                     </div>
-                </>
+                </div>
             )}
         </Layout>
     );

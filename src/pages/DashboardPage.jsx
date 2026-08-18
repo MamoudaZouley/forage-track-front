@@ -5,79 +5,61 @@ import api from '../services/api';
 import SupervisorZoneFilter from '../components/SupervisorZoneFilter';
 
 
-export default function DashboardPage() { 
+export default function DashboardPage() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
-    const [syncResult, setSyncResult] = useState(null);
+    const [syncMessage, setSyncMessage] = useState(null);
 
-    const handleSync = async () => {
-    setSyncing(true);
-    setSyncError(null);
-    
-    try {
-        // Lance la sync sans attendre la réponse
+    const fetchDashboard = () => {
+        return api.get('/dashboard').then(res => setData(res.data));
+    };
+
+    useEffect(() => {
+        fetchDashboard().finally(() => setLoading(false));
+    }, []);
+
+    const handleSync = () => {
+        setSyncing(true);
+        setSyncMessage({ type: 'info', text: '⏳ Synchronisation en cours...' });
+
+        // Lance la sync en arrière-plan
         fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/sync`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 'Content-Type': 'application/json',
             },
-        }).catch(() => {}); // Ignore le timeout
+        }).catch(() => {});
 
-        // Poll le statut toutes les 5 secondes
-        let attempts = 0;
-        const poll = setInterval(async () => {
-            attempts++;
-            try {
-                const status = await api.get('/sync/status');
-                // Rafraîchit le dashboard
-                await fetchDashboard();
-            } catch {}
-            
-            if (attempts >= 24) { // 2 minutes max
-                clearInterval(poll);
-                setSyncing(false);
-            }
+        // Rafraîchit le dashboard après 5 secondes
+        setTimeout(async () => {
+            await fetchDashboard();
+            setSyncing(false);
+            setSyncMessage({ type: 'success', text: '✅ Synchronisation lancée — Les données seront à jour dans quelques minutes.' });
+            setTimeout(() => setSyncMessage(null), 5000);
         }, 5000);
-
-    } catch (err) {
-        setSyncError('Erreur de synchronisation');
-        setSyncing(false);
-    }
     };
-  
-    useEffect(() => {
-        api.get('/dashboard')
-            .then(res => setData(res.data))
-            .finally(() => setLoading(false));
-    }, []);
 
     if (loading) return <Layout><div className="text-center mt-5">Chargement...</div></Layout>;
 
     return (
         <Layout>
-            {/* Bouton sync */}
-<div className="d-flex justify-content-between align-items-center mb-4">
-    <h4 className="fw-bold mb-0" style={{ color: '#1F4E79' }}>Tableau de bord</h4>
-    <button
-        onClick={handleSync}
-        disabled={syncing}
-        className="btn btn-sm text-white"
-        style={{ backgroundColor: '#27AE60' }}>
-        {syncing ? '⏳ Synchronisation...' : '🔄 Synchroniser KoboToolbox'}
-    </button>
-</div>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h4 className="fw-bold mb-0" style={{ color: '#1F4E79' }}>Tableau de bord</h4>
+                <button onClick={handleSync} disabled={syncing}
+                        className="btn btn-sm text-white"
+                        style={{ backgroundColor: '#27AE60' }}>
+                    {syncing ? '⏳ Synchronisation...' : '🔄 Synchroniser KoboToolbox'}
+                </button>
+            </div>
 
-{/* Résultat sync */}
-{syncResult && (
-    <div className={`alert py-2 small mb-3 ${syncResult.success ? 'alert-success' : 'alert-danger'}`}>
-        {syncResult.success
-            ? `✅ Supervisions: ${syncResult.results?.supervisions?.imported} importées, ${syncResult.results?.supervisions?.skipped} ignorées — Maintenances: ${syncResult.results?.maintenances?.imported} importées`
-            : `❌ ${syncResult.message}`
-        }
-    </div>
-)}
+            {syncMessage && (
+                <div className={`alert py-2 small mb-3 ${syncMessage.type === 'success' ? 'alert-success' : 'alert-info'}`}>
+                    {syncMessage.text}
+                </div>
+            )}
+
            
 
             {/* Cartes stats */}
@@ -91,6 +73,17 @@ export default function DashboardPage() {
                                 {data.wells.operational}
                             </div>
                             <div className="small text-muted">sur {data.wells.total} puits</div>
+                        </div>
+                    </div>
+                </div>
+                {/* Carte visites semaine */}
+                <div className="col-md-3">
+                    <div className="card border-0 shadow-sm h-100">
+                        <div className="card-body text-center">
+                            <div className="fs-2 fw-bold" style={{ color: '#8E44AD' }}>
+                                {data.week_visits}
+                            </div>
+                            <div className="text-muted small">Visites cette semaine</div>
                         </div>
                     </div>
                 </div>
